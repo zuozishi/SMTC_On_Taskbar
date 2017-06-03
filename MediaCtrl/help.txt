@@ -1,0 +1,6 @@
+﻿用法:MediaCtrl.exe [p,c,next,pre,about]
+p-播放/暂停
+c-打开/关闭桌面歌词(仅网易云)
+next-下一曲
+pre-上一曲
+about-关于窗口
