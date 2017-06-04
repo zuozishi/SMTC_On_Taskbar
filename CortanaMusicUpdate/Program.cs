@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
@@ -68,8 +69,9 @@ namespace CortanaMusicUpdate
         {
             try
             {
-                var process = System.Diagnostics.Process.GetProcessesByName("cloudmusic");
-                if (process.Length == 0)
+                var cloudmusic = Process.GetProcessesByName("cloudmusic");
+                var qqmusic = Process.GetProcessesByName("QQMusic");
+                if (cloudmusic.Length == 0&& qqmusic.Length==0)
                 {
                     if(GetCortanaText()!="请在这里输入你要搜索的内容")
                     {
@@ -83,17 +85,32 @@ namespace CortanaMusicUpdate
                     }
                     return;
                 }
-                if (GetCortanaText() != GetMusicText())
+                if(cloudmusic.Length>0)
                 {
-                    int oldx, oldy;
-                    SetText(GetMusicText());
-                    oldx = Control.MousePosition.X;
-                    oldy = Control.MousePosition.Y;
-                    SetCursorPos(187, 1063);
-                    mouse_event(MouseEventFlag.Move, 0, 0, 0, UIntPtr.Zero);
-                    SetCursorPos(oldx, oldy);
+                    if (GetCortanaText() != GetMusicText())
+                    {
+                        int oldx, oldy;
+                        SetText(GetMusicText());
+                        oldx = Control.MousePosition.X;
+                        oldy = Control.MousePosition.Y;
+                        SetCursorPos(187, 1063);
+                        mouse_event(MouseEventFlag.Move, 0, 0, 0, UIntPtr.Zero);
+                        SetCursorPos(oldx, oldy);
+                    }
                 }
-
+                else if (qqmusic.Length > 0)
+                {
+                    if (GetCortanaText() != GetQQMusicText())
+                    {
+                        int oldx, oldy;
+                        SetText(GetQQMusicText());
+                        oldx = Control.MousePosition.X;
+                        oldy = Control.MousePosition.Y;
+                        SetCursorPos(187, 1063);
+                        mouse_event(MouseEventFlag.Move, 0, 0, 0, UIntPtr.Zero);
+                        SetCursorPos(oldx, oldy);
+                    }
+                }
             }
             catch (Exception)
             {
@@ -101,10 +118,20 @@ namespace CortanaMusicUpdate
             }
         }
 
-        //获取曲名
+        //获取曲名-网易云音乐
         static string GetMusicText()
         {
             var musicbox = FindWindow("OrpheusBrowserHost", null);
+            int musiclen = GetWindowTextLength(musicbox);
+            StringBuilder windowName = new StringBuilder(musiclen + 1);
+            GetWindowText(musicbox, windowName, windowName.Capacity);
+            return windowName.ToString();
+        }
+
+        //获取曲名-QQ音乐
+        static string GetQQMusicText()
+        {
+            var musicbox = FindWindow("QQMusic_Daemon_Wnd", null);
             int musiclen = GetWindowTextLength(musicbox);
             StringBuilder windowName = new StringBuilder(musiclen + 1);
             GetWindowText(musicbox, windowName, windowName.Capacity);

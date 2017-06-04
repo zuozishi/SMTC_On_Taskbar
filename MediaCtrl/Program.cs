@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -12,24 +11,12 @@ namespace MediaCtrl
     {
         [DllImport("user32.dll", EntryPoint = "keybd_event", SetLastError = true)]
         public static extern void keybd_event(Keys bVk, byte bScan, uint dwFlags, uint dwExtraInfo);
-        [DllImport("user32.dll", EntryPoint = "FindWindow")]
-        private extern static IntPtr FindWindow(string lpClassName, string lpWindowName);
-        [DllImport("user32.dll", EntryPoint = "FindWindowExA")]
-        private extern static IntPtr FindWindowExA(IntPtr hWndParent, IntPtr hWndChildAfter,string lpszClass,string lpszWindow);
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        public static extern int SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, IntPtr lParam);
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam,string lParam);
-        [DllImport("user32.dll")]
-        public static extern int GetWindowTextLength(IntPtr hWnd);
-        [DllImport("User32.dll", CharSet = CharSet.Auto)]  
-        public static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int nMaxCount);
 
         static void Main(string[] args)
         {
-            ShowMusicBox(args);
+            //ShowMusicBox(args);
+            var cloudmusic = Process.GetProcessesByName("cloudmusic");
+            var qqmusic = Process.GetProcessesByName("QQMusic");
             if (args.Length>0)
             {
                 switch (args[0])
@@ -37,22 +24,61 @@ namespace MediaCtrl
                     case "p"://播放-暂停
                         keybd_event(Keys.MediaPlayPause, 0, 0, 0);
                         keybd_event(Keys.MediaPlayPause, 0, 2, 0);
+                        if (qqmusic.Length > 0)//QQ音乐
+                        {
+                            keybd_event(Keys.ControlKey, 0, 0, 0);
+                            keybd_event(Keys.Menu, 0, 0, 0);
+                            keybd_event(Keys.F5, 0, 0, 0);
+                            keybd_event(Keys.ControlKey, 0, 2, 0);
+                            keybd_event(Keys.Menu, 0, 2, 0);
+                            keybd_event(Keys.F5, 0, 2, 0);
+                        }
                         break;
                     case "c"://桌面歌词 Ctrl+Alt+D
-                        keybd_event(Keys.ControlKey, 0, 0, 0);
-                        keybd_event(Keys.Menu, 0, 0, 0);
-                        keybd_event(Keys.D, 0, 0, 0);
-                        keybd_event(Keys.ControlKey, 0, 2, 0);
-                        keybd_event(Keys.Menu, 0, 2, 0);
-                        keybd_event(Keys.D, 0, 2, 0);
+                        
+                        if(cloudmusic.Length>0)//网易云音乐
+                        {
+                            keybd_event(Keys.ControlKey, 0, 0, 0);
+                            keybd_event(Keys.Menu, 0, 0, 0);
+                            keybd_event(Keys.D, 0, 0, 0);
+                            keybd_event(Keys.ControlKey, 0, 2, 0);
+                            keybd_event(Keys.Menu, 0, 2, 0);
+                            keybd_event(Keys.D, 0, 2, 0);
+                        }else if(qqmusic.Length>0)//QQ音乐
+                        {
+                            keybd_event(Keys.ControlKey, 0, 0, 0);
+                            keybd_event(Keys.Menu, 0, 0, 0);
+                            keybd_event(Keys.W, 0, 0, 0);
+                            keybd_event(Keys.ControlKey, 0, 2, 0);
+                            keybd_event(Keys.Menu, 0, 2, 0);
+                            keybd_event(Keys.W, 0, 2, 0);
+                        }
                         break;
                     case "next"://下一曲
                         keybd_event(Keys.MediaNextTrack, 0, 0, 0);
                         keybd_event(Keys.MediaNextTrack, 0, 2, 0);
+                        if (qqmusic.Length > 0)//QQ音乐
+                        {
+                            keybd_event(Keys.ControlKey, 0, 0, 0);
+                            keybd_event(Keys.Menu, 0, 0, 0);
+                            keybd_event(Keys.Right, 0, 0, 0);
+                            keybd_event(Keys.ControlKey, 0, 2, 0);
+                            keybd_event(Keys.Menu, 0, 2, 0);
+                            keybd_event(Keys.Right, 0, 2, 0);
+                        }
                         break;  
                     case "pre"://上一曲
                         keybd_event(Keys.MediaPreviousTrack, 0, 0, 0);
                         keybd_event(Keys.MediaPreviousTrack, 0, 2, 0);
+                        if (qqmusic.Length > 0)//QQ音乐
+                        {
+                            keybd_event(Keys.ControlKey, 0, 0, 0);
+                            keybd_event(Keys.Menu, 0, 0, 0);
+                            keybd_event(Keys.Left, 0, 0, 0);
+                            keybd_event(Keys.ControlKey, 0, 2, 0);
+                            keybd_event(Keys.Menu, 0, 2, 0);
+                            keybd_event(Keys.Left, 0, 2, 0);
+                        }
                         break;
                     case "about"://关于
                         new AboutBox().ShowDialog();
@@ -119,40 +145,6 @@ namespace MediaCtrl
             await Task.Delay(1000);
             p.StandardInput.WriteLine("exit");
             //string output = p.StandardOutput.ReadToEnd();
-        }
-
-        static string GetMusicText()
-        {
-            var musicbox = FindWindow("OrpheusBrowserHost", null);
-            int musiclen = GetWindowTextLength(musicbox);
-            StringBuilder windowName = new StringBuilder(musiclen + 1);
-            GetWindowText(musicbox, windowName, windowName.Capacity);
-            return windowName.ToString();
-        }
-
-
-        static string GetCortanaText()
-        {
-            var taskbar = FindWindow("Shell_TrayWnd", null);
-            if (taskbar == null) return "";
-            var cortana = FindWindowExA(taskbar, IntPtr.Zero, "TrayDummySearchControl", null);
-            if (cortana == null) return "";
-            var cortext = FindWindowExA(cortana, IntPtr.Zero, "Static", null);
-            var length = SendMessage(cortext, 0x000E, 0, 0);
-            StringBuilder windowName = new StringBuilder(length + 1);
-            GetWindowText(cortext, windowName, windowName.Capacity);
-            return windowName.ToString();
-        }
-
-        static void SetText(string text)
-        {
-            var taskbar = FindWindow("Shell_TrayWnd", null);
-            if (taskbar == null) return;
-            var cortana = FindWindowExA(taskbar, IntPtr.Zero, "TrayDummySearchControl", null);
-            if (cortana == null) return;
-            var cortext = FindWindowExA(cortana, IntPtr.Zero, "Static", null);
-            var length = SendMessage(cortext, 0x000E, 0, 0);
-            SendMessage(cortext, 0x000C, 0, text);
         }
     }
 }
